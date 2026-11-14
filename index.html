@@ -335,7 +335,7 @@ function renderScan(){
   $('scanTbl').innerHTML = `<table><thead><tr><th>Token</th><th>Status</th><th>MCap</th><th>Vol 5m</th><th>Liq</th><th>Age</th></tr></thead><tbody>`+
     rows.slice(0,40).map(r=>`<tr><td><a class="sym" href="${dex(r.pair)}" target="_blank" rel="noopener noreferrer">${esc(r.symbol)}</a><div class="sub mono">${short(r.token)}</div></td>
     <td>${tag(r)}${r.reason?`<div class="sub" style="max-width:220px">${esc(r.reason)}</div>`:''}</td><td class="mono">$${big(r.mcap)}</td><td class="mono">$${big(r.vol5m)}</td>
-    <td class="mono">$${big(r.liq)}</td><td class="mono">${r.age_min==null?'—':dur(r.age_min*60)}</td></tr>`).join('')+'</tbody></table>';
+    <td class="mono">$${big(r.liq)}${r.liq_src==='geckoterminal'?'<div class="sub" title="DexScreener had no liquidity; GeckoTerminal pool reserve used">via Gecko</div>':''}${r.pool_dex&&/pump|dbc|launch/i.test(r.pool_dex)?`<div class="sub">${esc(r.pool_dex)}</div>`:''}</td><td class="mono">${r.age_min==null?'—':dur(r.age_min*60)}</td></tr>`).join('')+'</tbody></table>';
 }
 function renderLog(){
   const pos=D.positions, hist=D.closed;
