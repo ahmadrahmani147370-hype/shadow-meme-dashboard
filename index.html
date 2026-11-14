@@ -92,6 +92,25 @@ td{padding:10px 8px;border-bottom:1px solid rgba(34,211,238,.06);white-space:now
 .tag{display:inline-block;padding:3px 8px;border-radius:7px;font-size:10.5px;font-weight:800;letter-spacing:.05em}
 .t-rug{background:var(--dnbg);color:var(--dn)}.t-ok{background:var(--upbg);color:var(--up2)}.t-cy{background:var(--cydim);color:var(--cy2)}.t-n{background:rgba(122,162,169,.12);color:var(--mut)}
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--dim);font-size:13px;min-height:110px;text-align:center;border:1px dashed var(--bd);border-radius:14px;padding:16px}
+/* live P&L */
+.pnl{margin-top:14px}
+.pnl .tot{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:4px}
+.pnl .tot .big{margin:0}
+.plist-cards{display:grid;gap:10px;margin-top:14px}
+.pcard{background:var(--card2);border:1px solid var(--bd);border-radius:14px;padding:12px 14px;box-shadow:0 0 18px rgba(34,211,238,.05)}
+.pcard .row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.pcard .syml{font-size:16px;font-weight:800}
+.pcard .pn{font-size:18px;font-weight:800;text-align:right;letter-spacing:-.02em}
+.pcard .meta{color:var(--dim);font-size:11px;margin-top:3px}
+.pcard .gridp{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:12px;font-size:12.5px}
+.pcard .gridp small{display:block;color:var(--dim);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+.pcard .gridp b{display:block;margin-top:2px;font-weight:700}
+.levels{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end;margin-top:4px;font-size:12px}
+.levels .lab{color:var(--dim);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+.track{position:relative;height:8px;border-radius:99px;margin:10px 0 4px;background:linear-gradient(90deg,rgba(244,63,94,.5),rgba(34,211,238,.14) 50%,rgba(34,197,94,.55))}
+.track i{position:absolute;top:50%;width:11px;height:11px;border-radius:50%;background:#ecfeff;border:2px solid var(--cy);box-shadow:0 0 8px var(--cy);transform:translate(-50%,-50%)}
+.na{color:var(--warn);font-weight:700}
+
 .chart .empty{height:100%}
 .sec{margin-top:14px}
 .sec h4{margin:0 0 8px;font-size:12px;color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
@@ -159,6 +178,13 @@ a{color:var(--cy2);text-decoration:none}
     <button class="chip" data-f="mcap">MCAP</button><button class="chip" data-f="vol">TOP VOLUME</button>
   </div>
 
+
+  <section class="glass card pnl" id="livePnl">
+    <div class="ch"><h3>Live P&amp;L</h3><span id="pnlMeta">open paper trades · net of fee &amp; slippage</span></div>
+    <div class="tot"><div class="big mono" id="pnlBig">—</div><div class="chg mono" id="pnlSub">&nbsp;</div></div>
+    <div class="plist-cards" id="pnlDash"></div>
+  </section>
+
   <section class="grid2" id="analytics">
     <div class="glass card">
       <div class="ch"><h3>Paper Equity</h3><span id="eqRange">last 24h</span></div>
@@ -180,7 +206,9 @@ a{color:var(--cy2);text-decoration:none}
   </div>
   <section class="glass card view on" id="v-scan"><div class="ch"><h3>Latest scan</h3><span id="scanInfo"></span></div><div class="tw" id="scanTbl" style="margin-top:10px"></div></section>
   <section class="glass card view" id="v-log">
-    <div class="ch"><h3>Open positions</h3><span>live unrealized P&amp;L, net of exit costs</span></div><div class="tw" id="pos" style="margin-top:10px"></div>
+    <div class="ch"><h3>Open positions</h3><span id="posMeta">live unrealized P&amp;L, net of fee &amp; slippage</span></div>
+    <div class="tot" id="posTot" style="margin:6px 0 4px"><div class="big mono" id="posBig">—</div><div class="chg mono" id="posSub">&nbsp;</div></div>
+    <div class="plist-cards" id="pos" style="margin-top:10px"></div>
     <div class="sec"><div class="ch"><h3>Closed trades</h3><span id="histInfo"></span></div><div class="tw" id="hist" style="margin-top:10px"></div></div>
   </section>
   <section class="glass card view" id="v-judge">
@@ -240,6 +268,7 @@ const td = ts => ts ? PKTD.format(new Date(ts*1000)) : '—';
 function ago(ts){ if(!ts) return 'never'; const s=Math.max(0,Date.now()/1000-ts); if(s<60) return Math.round(s)+'s ago';
   if(s<3600) return Math.round(s/60)+' min ago'; if(s<86400) return (s/3600).toFixed(1)+' h ago'; return (s/86400).toFixed(1)+' d ago'; }
 function dur(s){ s=Math.max(0,s|0); const d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60); return d? `${d}d ${h}h` : h? `${h}h ${m}m` : `${m}m`; }
+function held(s){ s=Math.max(0,s|0); if(s<60) return s+'s'; const d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60); return d? `${d}d ${h}h` : h? `${h}h ${m}m` : `${m}m`; }
 const empty = (t, sub) => `<div class="empty"><div>${esc(t)}</div>${sub?`<div class="sub">${esc(sub)}</div>`:''}</div>`;
 const short = a => a ? esc(a.slice(0,4)+'…'+a.slice(-4)) : '';
 const dex = a => `https://dexscreener.com/solana/${encodeURIComponent(a||'')}`;
@@ -318,7 +347,7 @@ function render(){
   bars('teBars', tpd, tpd.length-1);
   $('teN').innerHTML = `${s.trades_today}<span style="color:var(--dim);font-size:15px"> / ${s.max_daily}</span>`; $('teS').textContent='today vs daily limit';
   $('teL0').textContent = ser.trades_per_day.length ? ser.trades_per_day[0].day.slice(5) : '';
-  renderScan(); renderLog(); renderJudge(); renderSettings(); renderPerf(); renderHealth();
+  renderPnlTotals(); fillPnl('pnlDash', $('pnlDash')); renderScan(); renderLog(); renderJudge(); renderSettings(); renderPerf(); renderHealth();
 }
 function renderScan(){
   const ls=D.last_scan;
@@ -337,14 +366,71 @@ function renderScan(){
     <td>${tag(r)}${r.reason?`<div class="sub" style="max-width:220px">${esc(r.reason)}</div>`:''}</td><td class="mono">$${big(r.mcap)}</td><td class="mono">$${big(r.vol5m)}</td>
     <td class="mono">$${big(r.liq)}${r.liq_src==='geckoterminal'?'<div class="sub" title="DexScreener had no liquidity; GeckoTerminal pool reserve used">via Gecko</div>':''}${r.pool_dex&&/pump|dbc|launch/i.test(r.pool_dex)?`<div class="sub">${esc(r.pool_dex)}</div>`:''}</td><td class="mono">${r.age_min==null?'—':dur(r.age_min*60)}</td></tr>`).join('')+'</tbody></table>';
 }
+function priceStamp(r){
+  if(!r.price_available) return '<span class="na">price unavailable</span>';
+  const when = r.price_ts ? ago(r.price_ts) : 'time unknown';
+  return r.price_stale ? `<span class="na">last ${esc(when)} (stale)</span>` : esc(when);
+}
+function slTpBar(r){
+  if(!r.price_available || r.stop_loss==null || r.take_profit==null) return '';
+  const span=r.take_profit-r.stop_loss; if(!(span>0)) return '';
+  const x=Math.max(0, Math.min(100, (r.price-r.stop_loss)/span*100));
+  return `<div class="track" title="live price between SL and TP"><i style="left:${x.toFixed(1)}%"></i></div>`;
+}
+function posCard(r){
+  const live = r.price_available
+    ? `<b class="mono">${price(r.price)}</b><span class="meta">${priceStamp(r)}</span>`
+    : `<b class="mono na">n/a</b><span class="meta">${priceStamp(r)}</span>`;
+  const pnl = r.unrealized==null
+    ? `<div class="pn mono na">n/a</div><div class="meta">waiting for a live price</div>`
+    : `<div class="pn mono ${cls(r.unrealized)}">${usd(r.unrealized,true)}</div><div class="meta ${cls(r.unrealized)}">${pct(r.unrealized_pct)} net</div>`;
+  const toSl = r.to_sl_pct==null ? '—' : pct(r.to_sl_pct);
+  const toTp = r.to_tp_pct==null ? '—' : pct(r.to_tp_pct);
+  return `<article class="pcard">
+    <div class="row">
+      <div><a class="syml" href="${dex(r.pair_address)}" target="_blank" rel="noopener noreferrer">${esc(r.symbol)}</a>
+        <div class="meta">#${r.id} · open ${held(r.held_sec)} · ${usd(r.position_size)} · entered ${esc(td(r.entry_time))} PKT</div></div>
+      <div style="text-align:right">${pnl}</div>
+    </div>
+    <div class="gridp">
+      <div><small>Entry fill</small><b class="mono">${price(r.entry_price)}</b></div>
+      <div><small>Live price</small>${live}</div>
+    </div>
+    ${slTpBar(r)}
+    <div class="levels">
+      <div><div class="lab dn">Stop loss</div><b class="mono dn">${price(r.stop_loss)}</b><div class="meta">${toSl} · if hit ${usd(r.sl_pnl,true)}</div></div>
+      <div></div>
+      <div style="text-align:right"><div class="lab up">Take profit</div><b class="mono up">${price(r.take_profit)}</b><div class="meta">${toTp} · if hit ${usd(r.tp_pnl,true)}</div></div>
+    </div>
+  </article>`;
+}
+function fillPnl(listId, emptyEl){
+  const pos=D.positions||[];
+  if(!pos.length){ emptyEl.innerHTML = empty('No open paper trades','A live card appears here when a signal is paper-filled. P&L stays empty until then.'); return; }
+  emptyEl.innerHTML = pos.map(posCard).join('');
+}
+function renderPnlTotals(){
+  const s=D.summary, n=s.open_trades||0, miss=s.unrealized_missing||0;
+  const meta = n ? `${n} open · net of fee & slippage${miss?` · ${miss} price n/a`:''}` : 'no open paper trades';
+  $('pnlMeta').textContent = meta;
+  if($('posMeta')) $('posMeta').textContent = meta;
+  let big, sub;
+  if(!n){ big='—'; sub='<span style="color:var(--dim)">unrealized stays empty until a trade opens</span>'; }
+  else if(miss===n){ big='n/a'; sub='<span class="na">waiting for a DexScreener price</span>'; }
+  else {
+    big=usd(s.unrealized_marked,true);
+    const bit = s.unrealized_pct==null ? '' : ` (${pct(s.unrealized_pct)})`;
+    sub = miss
+      ? `<span class="${cls(s.unrealized_marked)}">${usd(s.unrealized_marked,true)}${bit}</span> <span class="na">${n-miss} of ${n} marked · ${miss} price n/a</span>`
+      : `<span class="${cls(s.unrealized_marked)}">${pct(s.unrealized_pct)}</span> <span style="color:var(--dim)">of ${usd(s.locked)} in open trades</span>`;
+  }
+  $('pnlBig').textContent=big; $('pnlBig').className='big mono '+(big==='n/a'?'na':cls(s.unrealized_marked));
+  $('pnlSub').innerHTML=sub;
+  if($('posBig')){ $('posBig').textContent=big; $('posBig').className=$('pnlBig').className; $('posSub').innerHTML=sub; }
+}
 function renderLog(){
-  const pos=D.positions, hist=D.closed;
-  $('pos').innerHTML = !pos.length ? empty('No open positions','A position opens when a signal scores ≥ the minimum and passes the safety checks.') :
-    `<table><thead><tr><th>Token</th><th>Entry</th><th>Now</th><th>SL / TP</th><th>Unrealized</th></tr></thead><tbody>`+
-    pos.map(r=>`<tr><td><a class="sym" href="${dex(r.pair_address)}" target="_blank" rel="noopener noreferrer">#${r.id} ${esc(r.symbol)}</a><div class="sub">${esc(td(r.entry_time))} · ${usd(r.position_size)}</div></td>
-    <td class="mono">${price(r.entry_price)}</td><td class="mono">${price(r.price)}<div class="sub">${r.price_ts?esc(ago(r.price_ts)):'price n/a'}</div></td>
-    <td class="mono"><span class="dn">${price(r.stop_loss)}</span><div class="up">${price(r.take_profit)}</div></td>
-    <td class="mono ${cls(r.unrealized)}">${usd(r.unrealized,true)}<div class="sub">${pct(r.unrealized_pct)}</div></td></tr>`).join('')+'</tbody></table>';
+  const hist=D.closed;
+  fillPnl('pos', $('pos'));
   $('histInfo').textContent = hist.length ? `last ${hist.length}` : '';
   const rs={TAKE_PROFIT:'TP',STOP_LOSS:'SL',TIME_EXIT:'TIME'};
   $('hist').innerHTML = !hist.length ? empty('No closed trades yet') :
