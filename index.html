@@ -374,7 +374,8 @@ function renderJudge(){
       return `<tr><td><span class="sym">${esc(x.symbol)}</span><div class="sub mono">${short(x.token)}</div></td><td>${scoreBar(g.valid||g.score?g.score:null)}</td><td>${v}</td></tr>`;}).join('')+'</tbody></table>';
 }
 function renderSettings(){
-  const c=D.config; $('cfg').innerHTML = Object.keys(c).sort().map(k=>`<div>${esc(k.toUpperCase())}</div><div>${esc(c[k])}</div>`).join('');
+  const c=D.config; const key=[['Min liquidity',`$${Number(c.min_liquidity_usd).toLocaleString('en-US')}`],['Stop loss / Take profit',`${c.stop_loss_pct}% / ${c.take_profit_pct}%`],['Position size',`$${c.position_size}`],['Max open / per day',`${c.max_open_positions} / ${c.max_daily_trades}`],['Min score',`${c.min_score}/100`]];
+  $('cfg').innerHTML = key.map(([k,v])=>`<div><b>${esc(k)}</b></div><div><b>${esc(v)}</b></div>`).join('') + Object.keys(c).sort().map(k=>`<div>${esc(k.toUpperCase())}</div><div>${esc(c[k])}</div>`).join('');
 }
 function renderPerf(){
   const s=D.summary; ring(s.win_rate);
