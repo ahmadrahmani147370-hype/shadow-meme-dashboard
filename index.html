@@ -356,7 +356,8 @@ function renderLog(){
 function scoreBar(s){ return s==null?'<span class="sub">gate failed</span>':`<span class="mono" style="display:inline-flex;gap:8px;align-items:center"><b style="display:inline-block;height:6px;width:${Math.max(3,s)*.5}px;border-radius:9px;background:${s>=80?'#22d3ee':'#4b6b71'};box-shadow:0 0 8px ${s>=80?'#22d3ee':'transparent'}"></b>${s}</span>`; }
 function renderJudge(){
   const c=D.config;
-  const rows=[['Trend','EMA9 > EMA21 (1m + 5m)'],['RSI14',`${c.rsi_min} – ${c.rsi_max}`],['Volume',`≥ ${c.volume_multiplier}× average`],
+  const rows=[['Universe',`Solana pairs aged ${c.min_pair_age_minutes} min – ${c.max_pair_age_hours} h, liquidity ≥ $${Number(c.min_liquidity_usd).toLocaleString('en-US')}`],
+    ['Trend','EMA9 > EMA21 (1m + 5m)'],['RSI14',`${c.rsi_min} – ${c.rsi_max}`],['Volume',`≥ ${c.volume_multiplier}× average`],
     ['Breakout + retest',`lookback ${c.breakout_lookback}, ≥ ${c.min_breakout_pct}%, retest ±${c.retest_tolerance_pct}%`],['Min score',`${c.min_score}/100`],
     ['Exit',`${c.exit_mode==='atr'?'ATR':'fixed'} · SL ${c.stop_loss_pct}% · TP ${c.take_profit_pct}% · max ${c.max_hold_minutes} min`]];
   $('strat').innerHTML=rows.map(([k,v])=>`<div>${esc(k)}</div><div>${esc(v)}</div>`).join('');
